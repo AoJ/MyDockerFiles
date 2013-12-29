@@ -8,8 +8,8 @@
 #
 
 VERSION="0.0.1"
-CONFIG=./deploy.conf
-LOG=/tmp/deploy.log
+CONFIG=/opt/deploy/deploy.conf
+LOG=/var/log/deploy.log
 TEST=0
 REF=
 ENV=
@@ -33,11 +33,9 @@ usage() {
   Commands:
 
     setup                run remote setup commands
-    update               update deploy to the latest release
     config [key]         output config file or [key]
     curr[ent]            output current release commit
     exec|run <cmd>       execute the given <cmd>
-    console              open an ssh session to the host
     [ref]                deploy to [ref], the 'ref' setting, or latest tag
 
 EOF
@@ -109,16 +107,6 @@ run() {
   $@
 }
 
-#
-# Launch an interactive ssh console session.
-#
-
-console() {
-  local path="`config_get path`/current"
-  local shell="`ssh_command`"
-  echo $shell
-  exec $shell -t "cd $path; \$SHELL --login"
-}
 
 #
 # Output config or [key].
@@ -143,9 +131,7 @@ hook() {
   local cmd=`config_get $hook`
   if test -n "$cmd"; then
     log "executing $hook \`$cmd\`"
-    run "cd $path/current; \
-      SHARED=\"$path/shared\" \
-      $cmd 2>&1 | tee -a $LOG; \
+    run "php $path/$cmd 2>&1 | tee -a $LOG; \
       exit \${PIPESTATUS[0]}"
     test $? -eq 0
   else
@@ -160,17 +146,12 @@ hook() {
 setup() {
   local path=`config_get path`
   local repo=`config_get repoPath`
-  local www=`config_get wwwDir`
-  local public=`config_get publicDir`
-  run "ls $path > /dev/null"
-  test $? -eq 0 || abort setup paths failed
-  log running setup
-  log cloning $repo
-  run "git clone $repo $path"
-  test $? -eq 0 || abort failed to clone
-  run "ln -sfn $path/$public $www"
-  test $? -eq 0 || abort symlink failed
-  log setup complete
+  log checking paths
+  # run "ls $path > /dev/null"
+  # test $? -eq 0 || abort setup paths failed
+
+  # run "ls $repo > /dev/null"
+  # test $? -eq 0 || abort repo path failed
 }
 
 #
@@ -179,25 +160,21 @@ setup() {
 
 deploy() {
   local ref=$1
+  local repo=`config_get repoPath`
   local path=`config_get path`
-  local www=`config_get wwwDir`
-  local public=`config_get publicDir`
+  local www=`config_get wwwPath`
+  local app=`config_get appDir`
   log deploying
 
   hook pre-deploy || abort pre-deploy hook failed
 
-  # fetch source
-  log fetching updates
-  run "cd $path/source && git fetch --all"
-  test $? -eq 0 || abort fetch failed
-
   # reset HEAD
   log resetting HEAD to $ref
-  run "cd $path/source && git reset --hard $ref"
-  test $? -eq 0 || abort git reset failed
+  run "git --git-dir=$repo --work-tree=$path reset --hard $ref"
+  test $? -eq 0 || abort git fetch failed
 
   # link current
-  run "ln -sfn $path/$public $www"
+  run "ln -sfn $path/$app $www"
   test $? -eq 0 || abort symlink failed
 
 
@@ -221,9 +198,10 @@ deploy() {
 #
 
 current_commit() {
+  local repo=`config_get repoPath`
   local path=`config_get path`
-  run "cd $path/source && \
-      git rev-parse --short HEAD"
+
+  run "git --git-dir=$repo --work-tree=$path rev-parse --short HEAD"
 }
 
 
@@ -241,8 +219,11 @@ require_env() {
 #
 
 check_for_local_changes() {
-  git --no-pager diff --exit-code --quiet          || abort "commit or stash your changes before deploying"
-  git --no-pager diff --exit-code --quiet --cached || abort "commit your staged changes before deploying"
+  local repo=`config_get repoPath`
+  local path=`config_get path`
+
+  git --git-dir=$repo --work-tree=$path --no-pager diff --exit-code --quiet          || abort "commit or stash your changes before deploying"
+  git --git-dir=$repo --work-tree=$path --no-pager diff --exit-code --quiet --cached || abort "commit your staged changes before deploying"
   [ -z "`git rev-list @{upstream}.. -n 1`" ]       || abort "push your changes before deploying"
 }
 
@@ -254,8 +235,7 @@ while test $# -ne 0; do
     -h|--help) usage; exit ;;
     -V|--version) version; exit ;;
     -c|--config) set_config_path $1; shift ;;
-    run|exec) require_env; run "cd `config_get path`/current && $@"; exit ;;
-    console) require_env; console; exit ;;
+    run|exec) require_env; run "cd `config_get path` && $@"; exit ;;
     curr|current) require_env; current_commit; exit ;;
     setup) require_env; setup $@; exit ;;
     config) config $@; exit ;;
