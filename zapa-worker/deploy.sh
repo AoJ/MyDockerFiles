@@ -46,9 +46,7 @@ EOF
 #
 
 abort() {
-  echo
-  echo "  $@" 1>&2
-  echo
+  echo $(date +"%Y-%m-%d %T.%3N")" ERROR $@" 1>&2
   exit 1
 }
 
@@ -57,7 +55,7 @@ abort() {
 #
 
 log() {
-  echo "   $@"
+  echo $(date +"%Y-%m-%d %T.%3N")" INFO $@"
 }
 
 #
