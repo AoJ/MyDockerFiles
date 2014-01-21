@@ -14,8 +14,8 @@ RUN mkdir -p /var/log/supervisor
 
 # ssh
 RUN mkdir -p /root/.ssh
-ADD id_rsa /root/.ssh/id_rsa
-RUN chmod 700 /root/.ssh/id_rsa
+ADD id_rsa root/.ssh/id_rsa
+# chown root:root root/.ssh/authorized_keys
 RUN echo "Host github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # supervisor
