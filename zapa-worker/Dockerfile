@@ -3,12 +3,14 @@
 FROM ubuntu:latest
 
 MAINTAINER AooJ "aooj@n13.cz"
-echo 1.1
+RUN echo 1.1
 
 RUN echo "deb http://archive.ubuntu.com/ubuntu/ precise universe" >> /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get -y install dialog net-tools lynx nano wget git openssh-server python-software-properties supervisor
+RUN apt-get -y install dialog
+RUN apt-get -y install net-tools lynx nano wget git openssh-server python-software-properties supervisor
 RUN add-apt-repository -y ppa:nginx/stable
+
 RUN add-apt-repository -y ppa:ondrej/php5-oldstable
 RUN apt-get update
 RUN apt-get upgrade -y
