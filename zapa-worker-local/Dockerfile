@@ -37,7 +37,6 @@ EXPOSE 22 80
 
 ADD start.sh /opt/run/start.sh
 ENTRYPOINT ["/opt/run/start.sh"]
-CMD ["--help"]
 
 # debug
 # docker build -t aooj/zapa-worker:1.0 .
