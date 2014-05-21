@@ -1,0 +1,41 @@
+devel-tomas:
+
+  images:
+    proxy: true
+
+  minify:
+    javascript_join: true
+    javascript_compress: true
+    stylesheet_join: true
+    stylesheet_compress: true
+
+  url:
+    default:
+      host: aoj.io
+
+  channel:
+    newsletter:
+      debug: true
+      debug_to_address: tomas.hegenbart@zoot.cz
+      from_address: info@zoot.cz
+      from_name: Zoot
+
+  email:
+      enabled: false
+
+  facebook:
+    api_key: '229603590526372'
+    api_secret: '819fa335b1eb6abab5eab690767e35e9'
+    api_id: 229603590526372
+
+  services:
+    memcache:
+      servers:
+        localhost:
+          host: localhost
+          port: 8008
+    memcacheclear:
+      servers:
+        localhost:
+          host: localhost
+          port: 8008

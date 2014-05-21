@@ -1,0 +1,12 @@
+devel-tomas:
+  propel:
+    class: sfPropelDatabase
+    param:
+      classname: DebugPDO
+      debug: { realmemoryusage: true, details: { time: { enabled: true }, slow: { enabled: true, threshold: 0.1 }, mem: { enabled: true }, mempeak: { enabled: true }, memdelta: { enabled: true }, querycount: { enabled: true }, method: { enabled : true } } }
+      dsn: 'mysql:host=172.17.0.12;dbname=zoot'
+      username: admin
+      password: pQTfPBVd18Sqb
+      encoding: utf8
+      persistent: true
+      pooling: true
